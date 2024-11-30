@@ -20,7 +20,17 @@ public class ShooterIntake extends SubsystemBase {
       new CANSparkMax(Constants.ShInConstants.kRightShIn2, MotorType.kBrushless);
 
   /** Creates a new ShooterIntake. */
-  public ShooterIntake() {}
+  public ShooterIntake() {
+    // Apparently this config is here ?
+    // Idk why we reset to factory default btw i just saw it in the example SPARK-MAX code
+    m_ShInFollowL.restoreFactoryDefaults();
+    m_ShInFollowR.restoreFactoryDefaults();
+    m_ShInMasterL.restoreFactoryDefaults();
+    m_ShInMasterR.restoreFactoryDefaults();
+    // Make the stuff follow stuff (smart)
+    m_ShInFollowL.follow(m_ShInMasterL);
+    m_ShInFollowR.follow(m_ShInMasterR);
+  }
 
   @Override
   public void periodic() {
