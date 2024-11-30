@@ -16,7 +16,13 @@ public class Climber extends SubsystemBase {
       new CANSparkMax(Constants.ClimberConstants.kRightClimberId, MotorType.kBrushless);
 
   /** Creates a new Climber. */
-  public Climber() {}
+  public Climber() {
+    // i dont even know if and how im supposed to do this but too bad im tryinig something anyway
+    m_climber_left.restoreFactoryDefaults();
+    m_climber_right.restoreFactoryDefaults();
+
+    m_climber_left.follow(m_climber_right, true);
+  }
 
   @Override
   public void periodic() {
