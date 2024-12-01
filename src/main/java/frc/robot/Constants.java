@@ -7,10 +7,10 @@ package frc.robot;
 /** Add your docs here. */
 public final class Constants {
   public final class ClimberConstants {
-    /** Device Id for left climber (no longer placeholder value rn because ik what it is now) */
+    /** Device Id for left climber motor */
     public static int kLeftClimberId = 11;
 
-    /** Device Id for left climber (no longer placeholder value rn because ik what it is now) */
+    /** Device Id for right climber */
     public static int kRightClimberId = 12;
   }
 
@@ -26,5 +26,11 @@ public final class Constants {
 
     /** Device Id for back left shooter/intake motor */
     public static int kLeftShIn2 = 16;
+
+    /** DIO port for lower intake IR sensor */
+    public static int kIntakeIRsensor = 4;
+
+    /** DIO port for higher shooter IR sensor */
+    public static int kShooterIRsensor = 5;
   }
 }
