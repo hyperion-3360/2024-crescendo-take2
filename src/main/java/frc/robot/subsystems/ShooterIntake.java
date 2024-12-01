@@ -26,10 +26,12 @@ public class ShooterIntake extends SubsystemBase {
   /** Detects notes getting shot out */
   private DigitalInput m_ShooterIR = new DigitalInput(Constants.ShInConstants.kShooterIRsensor);
 
+  // Speeds will go here
+  private double testSpeed = 0.3;
+
   /** Creates a new ShooterIntake. */
   public ShooterIntake() {
-    // Apparently this config is here ?
-    // Idk why we reset to factory default btw i just saw it in the example SPARK-MAX code
+    // Restore factory default pour pas faire du caca
     m_ShInFollowL.restoreFactoryDefaults();
     m_ShInFollowR.restoreFactoryDefaults();
     m_ShInMasterL.restoreFactoryDefaults();
@@ -37,6 +39,12 @@ public class ShooterIntake extends SubsystemBase {
     // Make the stuff follow stuff (smart)
     m_ShInFollowL.follow(m_ShInMasterL);
     m_ShInFollowR.follow(m_ShInMasterR);
+    // Invert Left side motors
+    m_ShInFollowL.setInverted(true);
+    m_ShInMasterL.setInverted(true);
+    // Omg it is spinning (probably not)
+    m_ShInMasterL.set(testSpeed);
+    m_ShInMasterR.set(testSpeed);
   }
 
   @Override
