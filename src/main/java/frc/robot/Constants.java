@@ -14,6 +14,10 @@ public final class Constants {
     public static int kRightClimberId = 12;
   }
 
+  public final class OperatorConstants {
+    public static int kDriverControllerPort = 0;
+  }
+
   public final class ShInConstants {
     /** Device Id for front right shooter/intake motor */
     public static int kRightShIn1 = 13;
