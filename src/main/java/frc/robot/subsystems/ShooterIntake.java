@@ -67,8 +67,8 @@ public class ShooterIntake extends SubsystemBase {
   @Override
   public void periodic() {
     // (for testing purposes)
-    System.out.println("Intake IR sensor" + m_IntakeIR);
-    System.out.println("Shooter IR sensor" + m_ShooterIR);
+    System.out.println("Intake IR sensor" + m_IntakeIR.get());
+    System.out.println("Shooter IR sensor" + m_ShooterIR.get());
   }
 
   public Command testIntake() {
