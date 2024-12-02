@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -27,9 +28,10 @@ public class ShooterIntake extends SubsystemBase {
   /** Detects notes getting shot out */
   private DigitalInput m_ShooterIR = new DigitalInput(Constants.ShInConstants.kShooterIRsensor);
 
-  // Motor speeds
+  // Motor speeds + ramp rate
   private static double testIntake = 0.3;
   private static double testVomit = -0.3;
+  private static double rampRate = 1.5; // To be adjusted
 
   /** Creates a new ShooterIntake. */
   public ShooterIntake() {
@@ -38,12 +40,28 @@ public class ShooterIntake extends SubsystemBase {
     m_ShInFollowR.restoreFactoryDefaults();
     m_ShInMasterL.restoreFactoryDefaults();
     m_ShInMasterR.restoreFactoryDefaults();
-    // Make the stuff follow stuff (smart)
-    m_ShInFollowL.follow(m_ShInMasterL);
-    m_ShInFollowR.follow(m_ShInMasterR);
     // Invert Left side motors
     m_ShInFollowL.setInverted(true);
     m_ShInMasterL.setInverted(true);
+    // Set idle mode
+    m_ShInMasterL.setIdleMode(IdleMode.kBrake);
+    m_ShInFollowL.setIdleMode(IdleMode.kBrake);
+    m_ShInMasterR.setIdleMode(IdleMode.kBrake);
+    m_ShInFollowR.setIdleMode(IdleMode.kBrake);
+    // Make the stuff follow stuff (smart)
+    m_ShInFollowL.follow(m_ShInMasterL);
+    m_ShInFollowR.follow(m_ShInMasterR);
+    // Ramp rate (go look it up i'm too lazy to explain it right now)
+    m_ShInFollowL.setOpenLoopRampRate(rampRate);
+    m_ShInFollowR.setOpenLoopRampRate(rampRate);
+    m_ShInMasterL.setOpenLoopRampRate(rampRate);
+    m_ShInMasterR.setOpenLoopRampRate(rampRate);
+    // No clue what this does
+    m_ShInFollowL.burnFlash();
+    m_ShInFollowR.burnFlash();
+    m_ShInMasterL.burnFlash();
+    m_ShInMasterR.burnFlash();
+    // servo motor will be here
   }
 
   @Override
