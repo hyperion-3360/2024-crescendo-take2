@@ -71,6 +71,7 @@ public class ShooterIntake extends SubsystemBase {
     System.out.println("Shooter IR sensor" + m_ShooterIR.get());
   }
 
+  // Note: these are test commands, i will make the way it works different
   public Command testIntake() {
     return this.run(
         () -> {
