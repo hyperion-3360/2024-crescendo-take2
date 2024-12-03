@@ -20,9 +20,9 @@ public class RobotContainer {
 
   private void configureBindings() {
     m_driverController.a().whileTrue(m_shooter.testIntake());
-    m_driverController.a().onFalse(m_shooter.setZeroSpeed());
+    // m_driverController.a().onFalse(m_shooter.setZeroSpeed());
     m_driverController.b().whileTrue(m_shooter.testVomit());
-    m_driverController.b().onFalse(m_shooter.setZeroSpeed());
+    // m_driverController.b().onFalse(m_shooter.setZeroSpeed());
   }
 
   public Command getAutonomousCommand() {

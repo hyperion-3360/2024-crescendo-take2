@@ -29,8 +29,8 @@ public class ShooterIntake extends SubsystemBase {
   private DigitalInput m_ShooterIR = new DigitalInput(Constants.ShInConstants.kShooterIRsensor);
 
   // Motor speeds + ramp rate
-  private static double testIntake = 0.3;
-  private static double testVomit = -0.3;
+  private static double testIntake = 0.5;
+  private static double testVomit = -0.5;
   private static double rampRate = 1.5; // To be adjusted
 
   /** Creates a new ShooterIntake. */
