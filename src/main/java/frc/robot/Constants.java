@@ -36,5 +36,8 @@ public final class Constants {
 
     /** DIO port for higher shooter IR sensor */
     public static int kShooterIRsensor = 5;
+
+    /** Port for note blocker servo (i think) */
+    public static int kServoPort = 5;
   }
 }

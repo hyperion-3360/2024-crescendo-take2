@@ -8,8 +8,11 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.Constants;
 
 public class ShooterIntake extends SubsystemBase {
@@ -22,6 +25,9 @@ public class ShooterIntake extends SubsystemBase {
   private CANSparkMax m_ShInFollowR =
       new CANSparkMax(Constants.ShInConstants.kRightShIn2, MotorType.kBrushless);
 
+  // Servo (finger)
+  private Servo m_noteBlocker = new Servo(Constants.ShInConstants.kServoPort);
+
   /** Detects notes getting "intaked" */
   private DigitalInput m_IntakeIR = new DigitalInput(Constants.ShInConstants.kIntakeIRsensor);
 
@@ -29,9 +35,19 @@ public class ShooterIntake extends SubsystemBase {
   private DigitalInput m_ShooterIR = new DigitalInput(Constants.ShInConstants.kShooterIRsensor);
 
   // Motor speeds + ramp rate
-  private static double testIntake = 0.5;
-  private static double testVomit = -0.5;
+  private static double testIntake = 0.3;
+  private static double testVomit = -0.3;
   private static double rampRate = 1.5; // To be adjusted
+
+  // Note blocker positions
+  private final double kNoteBlockOpen = 100;
+  private final double kNoteBlockClosed = 156;
+
+  // IR bools
+  private boolean noteIn = m_IntakeIR.get();
+  private boolean noteOut = m_ShooterIR.get();
+
+  // enum for different cases will go here
 
   /** Creates a new ShooterIntake. */
   public ShooterIntake() {
@@ -61,7 +77,8 @@ public class ShooterIntake extends SubsystemBase {
     m_ShInFollowR.burnFlash();
     m_ShInMasterL.burnFlash();
     m_ShInMasterR.burnFlash();
-    // servo motor will be here
+    // Close note blocker hook
+    m_noteBlocker.setAngle(kNoteBlockClosed);
   }
 
   @Override
@@ -69,6 +86,8 @@ public class ShooterIntake extends SubsystemBase {
     // (for testing purposes)
     System.out.println("Intake IR sensor" + m_IntakeIR.get());
     System.out.println("Shooter IR sensor" + m_ShooterIR.get());
+    noteIn = !m_IntakeIR.get();
+    noteOut = !m_ShooterIR.get();
   }
 
   // Note: these are test commands, i will make the way it works different
@@ -98,5 +117,20 @@ public class ShooterIntake extends SubsystemBase {
           m_ShInMasterL.set(0);
           m_ShInMasterR.set(0);
         });
+  }
+
+  public Command advTestIntake() {
+    return Commands.sequence(
+        runOnce(
+            () -> {
+              m_noteBlocker.setAngle(kNoteBlockClosed);
+            }),
+        runOnce(
+            () -> {
+              m_ShInMasterL.set(testIntake);
+              m_ShInMasterR.set(testIntake);
+            }),
+        new WaitUntilCommand(m_IntakeIR::get)),
+        // stop the command somehow here
   }
 }
