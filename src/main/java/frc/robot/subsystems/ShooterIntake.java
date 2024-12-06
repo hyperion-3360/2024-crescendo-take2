@@ -99,6 +99,7 @@ public class ShooterIntake extends SubsystemBase {
     noteOut = !m_ShooterIR.get();
     setMotorSpeed();
     SmartDashboard.putNumber("testintake", kTestIntake);
+    SmartDashboard.putNumber("currentSpeed", currentSpeed);
   }
 
   // Note: these are test commands, i will make the way it works different
