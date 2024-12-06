@@ -9,6 +9,7 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Servo;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -35,9 +36,10 @@ public class ShooterIntake extends SubsystemBase {
   private DigitalInput m_ShooterIR = new DigitalInput(Constants.ShInConstants.kShooterIRsensor);
 
   // Motor speeds + ramp rate
-  private static double testIntake = 0.3;
-  private static double testVomit = -0.3;
-  private static double rampRate = 1.5; // To be adjusted
+  private static double kTestIntake = -0.3;
+  private static double kTestVomit = 0.8;
+  private static double rampRate = 1; // To be adjusted
+  private double currentSpeed = 0;
 
   // Note blocker positions
   private final double kNoteBlockOpen = 100;
@@ -48,6 +50,11 @@ public class ShooterIntake extends SubsystemBase {
   private boolean noteOut = m_ShooterIR.get();
 
   // enum for different cases will go here
+  public enum speedStates {
+    INTAKE,
+    VOMIT,
+    STOP
+  }
 
   /** Creates a new ShooterIntake. */
   public ShooterIntake() {
@@ -79,36 +86,28 @@ public class ShooterIntake extends SubsystemBase {
     m_ShInMasterR.burnFlash();
     // Close note blocker hook
     m_noteBlocker.setAngle(kNoteBlockClosed);
+    // Amp limit
+    m_ShInMasterL.setSmartCurrentLimit(20);
+    m_ShInFollowL.setSmartCurrentLimit(20);
+    m_ShInMasterR.setSmartCurrentLimit(20);
+    m_ShInFollowR.setSmartCurrentLimit(20);
   }
 
   @Override
   public void periodic() {
-    // (for testing purposes)
-    System.out.println("Intake IR sensor" + m_IntakeIR.get());
-    System.out.println("Shooter IR sensor" + m_ShooterIR.get());
     noteIn = !m_IntakeIR.get();
     noteOut = !m_ShooterIR.get();
+    setMotorSpeed();
+    SmartDashboard.putNumber("testintake", kTestIntake);
   }
 
   // Note: these are test commands, i will make the way it works different
   public Command testIntake() {
-    return this.run(
-        () -> {
-          m_ShInMasterL.set(testIntake);
-          m_ShInMasterR.set(testIntake);
-          System.out.println(m_ShInMasterL.get());
-          System.out.println(m_ShInMasterR.get());
-        });
+    return this.runOnce(() -> setVarSpeed(speedStates.INTAKE));
   }
 
   public Command testVomit() {
-    return this.run(
-        () -> {
-          m_ShInMasterL.set(testVomit);
-          m_ShInMasterR.set(testVomit);
-          System.out.println(m_ShInMasterL.get());
-          System.out.println(m_ShInMasterR);
-        });
+    return this.runOnce(() -> setVarSpeed(speedStates.VOMIT));
   }
 
   public Command setZeroSpeed() {
@@ -119,18 +118,55 @@ public class ShooterIntake extends SubsystemBase {
         });
   }
 
-  public Command advTestIntake() {
+  // More advanced intake command
+  public Command advIntake() {
     return Commands.sequence(
-        runOnce(
-            () -> {
-              m_noteBlocker.setAngle(kNoteBlockClosed);
-            }),
-        runOnce(
-            () -> {
-              m_ShInMasterL.set(testIntake);
-              m_ShInMasterR.set(testIntake);
-            }),
-        new WaitUntilCommand(m_IntakeIR::get)),
-        // stop the command somehow here
+        closeNoteBlocker(),
+        runOnce(() -> setVarSpeed(speedStates.INTAKE)),
+        new WaitUntilCommand(() -> noteIn()),
+        stop());
+  }
+
+  private boolean noteIn() {
+    // Implement the logic for noteIn
+    return !m_IntakeIR.get();
+  }
+
+  public void openNoteBlocker() {
+    m_noteBlocker.setAngle(kNoteBlockOpen);
+  }
+
+  public Command closeNoteBlocker() {
+    return runOnce(() -> m_noteBlocker.setAngle(kNoteBlockClosed));
+  }
+
+  public void setVarSpeed(speedStates speed) {
+    // Change value of currentSpeed with a switch case using the enum
+    switch (speed) {
+      case STOP:
+        currentSpeed = 0;
+        break;
+      case INTAKE:
+        currentSpeed = kTestIntake;
+        break;
+      case VOMIT:
+        currentSpeed = kTestVomit;
+        break;
+      default:
+        currentSpeed = 0;
+        break;
+    }
+  }
+
+  public Command setMotorSpeed() {
+    return runOnce(
+        () -> {
+          m_ShInMasterL.set(currentSpeed);
+          m_ShInMasterR.set(currentSpeed);
+        });
+  }
+
+  public Command stop() {
+    return runOnce(() -> setVarSpeed(speedStates.STOP));
   }
 }

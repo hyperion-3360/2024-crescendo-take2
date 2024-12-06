@@ -25,6 +25,8 @@ public class RobotContainer {
     m_driverController.b().whileTrue(m_shooter.testVomit());
     // temporary fix
     m_driverController.b().onFalse(m_shooter.setZeroSpeed());
+    // please work
+    m_driverController.x().onTrue(m_shooter.advIntake());
   }
 
   public Command getAutonomousCommand() {
