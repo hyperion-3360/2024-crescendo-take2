@@ -97,8 +97,6 @@ public class ShooterIntake extends SubsystemBase {
   public void periodic() {
     noteIn = !m_IntakeIR.get();
     noteOut = !m_ShooterIR.get();
-    setMotorSpeed();
-    SmartDashboard.putNumber("testintake", kTestIntake);
     SmartDashboard.putNumber("currentSpeed", currentSpeed);
   }
 
@@ -124,8 +122,10 @@ public class ShooterIntake extends SubsystemBase {
     return Commands.sequence(
         closeNoteBlocker(),
         runOnce(() -> setVarSpeed(speedStates.INTAKE)),
+        setMotorSpeed(),
         new WaitUntilCommand(() -> noteIn()),
-        stop());
+        stop(),
+        setMotorSpeed());
   }
 
   private boolean noteIn() {
@@ -159,6 +159,7 @@ public class ShooterIntake extends SubsystemBase {
     }
   }
 
+  // this is complicated for no reason but its simpler to just keep it
   public Command setMotorSpeed() {
     return runOnce(
         () -> {

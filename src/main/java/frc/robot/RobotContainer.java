@@ -19,13 +19,6 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
-    m_driverController.a().whileTrue(m_shooter.testIntake());
-    // temporary fix
-    m_driverController.a().onFalse(m_shooter.setZeroSpeed());
-    m_driverController.b().whileTrue(m_shooter.testVomit());
-    // temporary fix
-    m_driverController.b().onFalse(m_shooter.setZeroSpeed());
-    // please work
     m_driverController.x().onTrue(m_shooter.advIntake());
   }
 
