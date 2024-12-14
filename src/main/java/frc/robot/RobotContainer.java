@@ -19,7 +19,7 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
-    m_driverController.x().onTrue(m_shooter.advIntake());
+    m_driverController.x().toggleOnTrue(m_shooter.Intake());
   }
 
   public Command getAutonomousCommand() {

@@ -35,12 +35,6 @@ public class ShooterIntake extends SubsystemBase {
   /** Detects notes getting shot out */
   private DigitalInput m_ShooterIR = new DigitalInput(Constants.ShInConstants.kShooterIRsensor);
 
-  // Motor speeds + ramp rate
-  private static double kTestIntake = -0.3;
-  private static double kTestVomit = 0.8;
-  private static double rampRate = 1; // To be adjusted
-  private double currentSpeed = 0;
-
   // Note blocker positions
   private final double kNoteBlockOpen = 100;
   private final double kNoteBlockClosed = 156;
@@ -48,13 +42,41 @@ public class ShooterIntake extends SubsystemBase {
   // IR bools
   private boolean noteIn = m_IntakeIR.get();
   private boolean noteOut = m_ShooterIR.get();
+  private boolean timerStarted = false;
 
   // enum for different cases will go here
   public enum speedStates {
     INTAKE,
     VOMIT,
-    STOP
+    STOP,
+    SPEAKER_CLOSE,
+    SPEAKER_FAR,
+    AMP,
+    EJECT,
+    MAX;
   }
+
+  // Motor speeds + ramp rate (constants)
+  private static double kTestIntake = 0.3;
+  private static double kTestVomit = -0.8;
+  private static double rampRate = 1;
+
+  // Speed variables
+  private double currentSpeed = 0;
+  private double lastSpeed = currentSpeed;
+
+  /** Note status */
+  public enum noteStates {
+    IDLE,
+    INTAKING,
+    HAS_NOTE,
+    FIRST_SIDE,
+    CENTER_HOLE,
+    SECOND_SIDE,
+    NOTE_SHOT;
+  }
+
+  noteStates m_noteStatus = noteStates.IDLE;
 
   /** Creates a new ShooterIntake. */
   public ShooterIntake() {
@@ -74,7 +96,7 @@ public class ShooterIntake extends SubsystemBase {
     // Make the stuff follow stuff (smart)
     m_ShInFollowL.follow(m_ShInMasterL);
     m_ShInFollowR.follow(m_ShInMasterR);
-    // Ramp rate (go look it up i'm too lazy to explain it right now)
+    // Ramp rate
     m_ShInFollowL.setOpenLoopRampRate(rampRate);
     m_ShInFollowR.setOpenLoopRampRate(rampRate);
     m_ShInMasterL.setOpenLoopRampRate(rampRate);
@@ -85,7 +107,7 @@ public class ShooterIntake extends SubsystemBase {
     m_ShInMasterL.burnFlash();
     m_ShInMasterR.burnFlash();
     // Close note blocker hook
-    m_noteBlocker.setAngle(kNoteBlockClosed);
+    closeNoteBlocker();
     // Amp limit
     m_ShInMasterL.setSmartCurrentLimit(20);
     m_ShInFollowL.setSmartCurrentLimit(20);
@@ -97,35 +119,82 @@ public class ShooterIntake extends SubsystemBase {
   public void periodic() {
     noteIn = !m_IntakeIR.get();
     noteOut = !m_ShooterIR.get();
-    SmartDashboard.putNumber("currentSpeed", currentSpeed);
+    SmartDashboard.putNumber("Shooter motors' speed", currentSpeed);
+    SmartDashboard.putBoolean("Note in ?", noteIn);
   }
 
-  // Note: these are test commands, i will make the way it works different
-  public Command testIntake() {
-    return this.runOnce(() -> setVarSpeed(speedStates.INTAKE));
+  // checks if what state the note should have and changes it (will be in periodic)
+  public void checkNoteStatus() {
+    switch (m_noteStatus) {
+      case IDLE:
+      case INTAKING:
+        if (!m_IntakeIR.get()) {
+          m_noteStatus = noteStates.HAS_NOTE;
+        }
+        break;
+      case HAS_NOTE:
+        if (!m_ShooterIR.get()) {
+          shootTimer();
+          m_noteStatus = noteStates.FIRST_SIDE;
+        }
+        break;
+      case FIRST_SIDE:
+        if (m_ShooterIR.get()) {
+          m_noteStatus = noteStates.CENTER_HOLE;
+        }
+        break;
+      case CENTER_HOLE:
+        if (!m_ShooterIR.get()) {
+          m_noteStatus = noteStates.SECOND_SIDE;
+        }
+        break;
+      case SECOND_SIDE:
+        if (m_ShooterIR.get()) {
+          m_noteStatus = noteStates.NOTE_SHOT;
+        }
+        break;
+      default:
+        break;
+    }
   }
 
-  public Command testVomit() {
-    return this.runOnce(() -> setVarSpeed(speedStates.VOMIT));
-  }
-
-  public Command setZeroSpeed() {
-    return run(
-        () -> {
-          m_ShInMasterL.set(0);
-          m_ShInMasterR.set(0);
-        });
-  }
-
-  // More advanced intake command
-  public Command advIntake() {
+  public Command Intake() {
     return Commands.sequence(
         closeNoteBlocker(),
-        runOnce(() -> setVarSpeed(speedStates.INTAKE)),
-        setMotorSpeed(),
+        runOnce(() -> setShInSpeed(speedStates.INTAKE)),
         new WaitUntilCommand(() -> noteIn()),
-        stop(),
-        setMotorSpeed());
+        stop());
+  }
+
+  public Command Vomit() {
+    return Commands.sequence(
+        runOnce(() -> setShInSpeed(speedStates.VOMIT)),
+        // time to be adjusted
+        new WaitUntilCommand(3),
+        stop());
+  }
+
+  public Command Eject() {
+    return Commands.sequence(
+        runOnce(() -> setShInSpeed(speedStates.EJECT)),
+        // time to be adjusted
+        new WaitUntilCommand(2),
+        stop());
+  }
+
+  // timer for a few seconds in case the IR doesnt detect both sides of the note
+  public void shootTimer() {
+    // time to be adjusted
+    if (!timerStarted) {
+      timerStarted = true;
+      new WaitUntilCommand(1.5);
+      if (m_noteStatus == noteStates.FIRST_SIDE || m_noteStatus == noteStates.CENTER_HOLE) {
+        System.out.println("Max delay reached");
+        m_noteStatus = noteStates.NOTE_SHOT;
+        stop();
+      }
+      timerStarted = false;
+    }
   }
 
   private boolean noteIn() {
@@ -133,15 +202,15 @@ public class ShooterIntake extends SubsystemBase {
     return !m_IntakeIR.get();
   }
 
-  public void openNoteBlocker() {
-    m_noteBlocker.setAngle(kNoteBlockOpen);
+  public Command openNoteBlocker() {
+    return runOnce(() -> m_noteBlocker.setAngle(kNoteBlockOpen));
   }
 
   public Command closeNoteBlocker() {
     return runOnce(() -> m_noteBlocker.setAngle(kNoteBlockClosed));
   }
 
-  public void setVarSpeed(speedStates speed) {
+  public void setShInSpeed(speedStates speed) {
     // Change value of currentSpeed with a switch case using the enum
     switch (speed) {
       case STOP:
@@ -153,22 +222,25 @@ public class ShooterIntake extends SubsystemBase {
       case VOMIT:
         currentSpeed = kTestVomit;
         break;
+      case EJECT:
+        currentSpeed = -kTestVomit;
+        break;
       default:
         currentSpeed = 0;
         break;
     }
-  }
-
-  // this is complicated for no reason but its simpler to just keep it
-  public Command setMotorSpeed() {
-    return runOnce(
-        () -> {
-          m_ShInMasterL.set(currentSpeed);
-          m_ShInMasterR.set(currentSpeed);
-        });
+    if (currentSpeed != lastSpeed) {
+      m_ShInMasterL.set(currentSpeed);
+      m_ShInMasterR.set(currentSpeed);
+      lastSpeed = currentSpeed;
+    }
   }
 
   public Command stop() {
-    return runOnce(() -> setVarSpeed(speedStates.STOP));
+    return runOnce(
+        () -> {
+          setShInSpeed(speedStates.STOP);
+          closeNoteBlocker();
+        });
   }
 }

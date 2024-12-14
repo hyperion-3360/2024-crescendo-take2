@@ -19,17 +19,17 @@ public final class Constants {
   }
 
   public final class ShInConstants {
-    /** Device Id for front right shooter/intake motor */
-    public static int kRightShIn1 = 13;
+    /** Device Id for right master shooter/intake motor */
+    public static int kRightShIn1 = 15;
 
-    /** Device Id for back right shooter/intake motor */
-    public static int kRightShIn2 = 14;
+    /** Device Id for right follower shooter/intake motor */
+    public static int kRightShIn2 = 16;
 
-    /** Device Id for front left shooter/intake motor */
-    public static int kLeftShIn1 = 15;
+    /** Device Id for left master shooter/intake motor */
+    public static int kLeftShIn1 = 13;
 
-    /** Device Id for back left shooter/intake motor */
-    public static int kLeftShIn2 = 16;
+    /** Device Id for left follower shooter/intake motor */
+    public static int kLeftShIn2 = 14;
 
     /** DIO port for lower intake IR sensor */
     public static int kIntakeIRsensor = 4;
