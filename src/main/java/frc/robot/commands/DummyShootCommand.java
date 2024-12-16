@@ -8,11 +8,16 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.subsystems.Shooter;
 
-public class DummyCommand extends Command {
-  /** Creates a new DummyCommand. */
-  public DummyCommand() {
-    // Use addRequirements() here to declare subsystem dependencies.
+public class DummyShootCommand extends Command {
+  private Shooter m_shooter;
+
+  public DummyShootCommand(Shooter s_shooter) {
+
+    m_shooter = s_shooter;
+
+    addRequirements(s_shooter);
   }
 
   // Called when the command is initially scheduled.
@@ -21,7 +26,10 @@ public class DummyCommand extends Command {
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
-  public void execute() {}
+  public void execute() {
+    m_shooter.setTarget(Shooter.speedStates.AMP);
+    m_shooter.Shoot();
+  }
 
   // Called once the command ends or is interrupted.
   @Override

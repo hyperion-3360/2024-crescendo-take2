@@ -16,7 +16,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.Constants;
 
-public class ShooterIntake extends SubsystemBase {
+public class Shooter extends SubsystemBase {
   private CANSparkMax m_ShInMasterL =
       new CANSparkMax(Constants.ShInConstants.kLeftShIn1, MotorType.kBrushless);
   private CANSparkMax m_ShInFollowL =
@@ -39,7 +39,7 @@ public class ShooterIntake extends SubsystemBase {
   private final double kNoteBlockOpen = 100;
   private final double kNoteBlockClosed = 156;
 
-  // IR bools
+  // bools
   private boolean noteIn = m_IntakeIR.get();
   private boolean noteOut = m_ShooterIR.get();
   private boolean timerStarted = false;
@@ -56,9 +56,15 @@ public class ShooterIntake extends SubsystemBase {
     MAX;
   }
 
-  // Motor speeds + ramp rate (constants)
-  private static double kTestIntake = 0.3;
-  private static double kTestVomit = -0.8;
+  speedStates m_target = speedStates.STOP;
+
+  // Motor speeds + ramp rate (constants) (adjust if needed)
+  private static double kIntake = 0.3;
+  private static double kVomit = -0.8;
+  private static double kAmp = 0.5;
+  private static double kSpeakerClose = 0.8;
+  private static double kSpeakerFar = 0.95;
+  private static double kMax = 1;
   private static double rampRate = 1;
 
   // Speed variables
@@ -79,7 +85,7 @@ public class ShooterIntake extends SubsystemBase {
   noteStates m_noteStatus = noteStates.IDLE;
 
   /** Creates a new ShooterIntake. */
-  public ShooterIntake() {
+  public Shooter() {
     // Restore factory default pour pas faire du caca
     m_ShInFollowL.restoreFactoryDefaults();
     m_ShInFollowR.restoreFactoryDefaults();
@@ -118,9 +124,10 @@ public class ShooterIntake extends SubsystemBase {
   @Override
   public void periodic() {
     noteIn = !m_IntakeIR.get();
-    noteOut = !m_ShooterIR.get();
     SmartDashboard.putNumber("Shooter motors' speed", currentSpeed);
-    SmartDashboard.putBoolean("Note in ?", noteIn);
+    SmartDashboard.putBoolean("Note in", noteIn);
+    SmartDashboard.putBoolean("Note out", noteOut);
+    checkNoteStatus();
   }
 
   // checks if what state the note should have and changes it (will be in periodic)
@@ -160,6 +167,7 @@ public class ShooterIntake extends SubsystemBase {
 
   public Command Intake() {
     return Commands.sequence(
+        runOnce(() -> m_noteStatus = noteStates.INTAKING),
         closeNoteBlocker(),
         runOnce(() -> setShInSpeed(speedStates.INTAKE)),
         new WaitUntilCommand(() -> noteIn()),
@@ -182,7 +190,17 @@ public class ShooterIntake extends SubsystemBase {
         stop());
   }
 
-  // timer for a few seconds in case the IR doesnt detect both sides of the note
+  public Command Shoot() {
+    return Commands.sequence(
+        closeNoteBlocker(),
+        setSpeedFromTarget(),
+        new WaitUntilCommand(1),
+        openNoteBlocker(),
+        new WaitUntilCommand(0.7),
+        stop());
+  }
+
+  // timer in case the IR doesnt detect both sides of the note
   public void shootTimer() {
     // time to be adjusted
     if (!timerStarted) {
@@ -198,8 +216,11 @@ public class ShooterIntake extends SubsystemBase {
   }
 
   private boolean noteIn() {
-    // Implement the logic for noteIn
     return !m_IntakeIR.get();
+  }
+
+  private boolean noteOut() {
+    return m_noteStatus == noteStates.NOTE_SHOT;
   }
 
   public Command openNoteBlocker() {
@@ -210,6 +231,14 @@ public class ShooterIntake extends SubsystemBase {
     return runOnce(() -> m_noteBlocker.setAngle(kNoteBlockClosed));
   }
 
+  public Command setTarget(speedStates target) {
+    return runOnce(() -> m_target = target);
+  }
+
+  public Command setSpeedFromTarget() {
+    return runOnce(() -> setShInSpeed(m_target));
+  }
+
   public void setShInSpeed(speedStates speed) {
     // Change value of currentSpeed with a switch case using the enum
     switch (speed) {
@@ -217,13 +246,25 @@ public class ShooterIntake extends SubsystemBase {
         currentSpeed = 0;
         break;
       case INTAKE:
-        currentSpeed = kTestIntake;
+        currentSpeed = kIntake;
         break;
       case VOMIT:
-        currentSpeed = kTestVomit;
+        currentSpeed = kVomit;
         break;
       case EJECT:
-        currentSpeed = -kTestVomit;
+        currentSpeed = -kVomit;
+        break;
+      case AMP:
+        currentSpeed = kAmp;
+        break;
+      case SPEAKER_CLOSE:
+        currentSpeed = kSpeakerClose;
+        break;
+      case SPEAKER_FAR:
+        currentSpeed = kSpeakerFar;
+        break;
+      case MAX:
+        currentSpeed = kMax;
         break;
       default:
         currentSpeed = 0;
