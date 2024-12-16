@@ -1,4 +1,4 @@
-package frc.robot.Auto;
+package frc.robot.commands;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
@@ -6,15 +6,19 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.function.BooleanSupplier;
+import java.util.stream.Collectors;
 
 /** Pathfinding */
 public class Pathfinding {
   public enum POI {
-    Note1(0.0, 0.0, 0.0, () -> ConditionBuilder.intakeHasNote()),
+    Note1(0.0, 0.0, 0.0, () -> ConditionBuilder.exampleCondition()),
     Note2(0.0, 0.0, 0.0, () -> false);
 
     private double x_coordinates;
@@ -84,6 +88,16 @@ public class Pathfinding {
 
       return allCondionsTrue;
     }
+
+    /**
+     * generic function to override. If not overriden will always return 0.
+     *
+     * @param poi the poi to which we want to estimate the reward
+     * @return the reward in points per meter or another similar unit which must involve points
+     */
+    public Double rewardFunction(POI poi) {
+      return 0.0;
+    }
   }
 
   private static LinkedList<POI> poiList = new LinkedList<>();
@@ -92,59 +106,78 @@ public class Pathfinding {
       new PathConstraints(3.0, 4.0, Units.degreesToRadians(540), Units.degreesToRadians(720));
 
   /**
-   * generic function to override. If not overriden will always return 0.
+   * filters a raw poi array and returns a pose2d object of the most advantageous point
    *
-   * @param poi_reward the poi to which we want to estimate the reward
-   * @return the reward in points per meter or another similar unit which must involve points
+   * @param raw_poi a list of POIs to filter through
+   * @return The {@link Pose2d} of the most advantageous point
    */
-  public static double rewardFunction(POI poi_reward) {
-    return 0.0;
-  }
+  private static Pose2d FilterPOIs(LinkedList<POI> raw_poi) {
+    // filters raw poi data and collects the result into a list of pois sorted from most profitable
+    // point to least
+    List<POI> filtered_pois =
+        raw_poi.stream()
+            .filter(offending_poi -> offending_poi.getConditionStatus() == true)
+            .sorted((p1, p2) -> p1.rewardFunction(p1).compareTo(p2.rewardFunction(p2)))
+            .collect(Collectors.toList());
 
-  /**
-   * this methods goal is to filter through all the useful POIs and select the most advantageous one
-   *
-   * @param poi a list of POIs to filter through
-   * @return The {@link Pose2d} of the most useful point
-   */
-  private static Pose2d FilterPOIs(LinkedList<POI> poi) {
-    double maxReward = 0.0;
-    // removes POIs which conditions aren't true this also ensures that the robot doesn't perform a
-    // useless action
-    poi.removeIf(offendingPoint -> (!offendingPoint.getConditionStatus()));
-    // loop picking the highest possible reward which should be in points per meter or a similar
-    // unit
-    for (POI poi_reward : poi) {
-      double reward = rewardFunction(poi_reward);
-      if (maxReward < reward) {
-        maxReward = reward;
-        poi.removeFirstOccurrence(poi_reward);
-        poi.addFirst(poi_reward);
-      }
-    }
-    return new Pose2d(poi.peekFirst().getCoordinates(), poi.pop().getAngle());
+    // uses the coordinates and angle of the first point
+    return new Pose2d(filtered_pois.get(0).getCoordinates(), filtered_pois.get(0).getAngle());
   }
 
   /**
    * executes the pathfinding command meaning that the robot should go to all chosen POIs
    *
-   * @param poi a list of POIs that the robot must go through if condtions apply
+   * @param poi a list of POIs that the robot should go through if conditions apply this param is
+   *     there in case we want to prefilter pois we don't want
    * @return the command to pathfind to a specified point
    */
   public static Command doPathfinding(POI[] poi) {
     if (poiList.isEmpty()) {
-      for (POI poiArrayElement : poiList) {
+      for (POI poiArrayElement : poi) {
         poiList.add(poiArrayElement);
       }
     }
-    return Commands.run(() -> AutoBuilder.pathfindToPose(FilterPOIs(poiList), constraints));
+    Command commandUsed =
+        Commands.run(() -> AutoBuilder.pathfindToPose(FilterPOIs(poiList), constraints));
+
+    if (DriverStation.getAlliance().get() == Alliance.Red) {
+      commandUsed =
+          Commands.run(() -> AutoBuilder.pathfindToPoseFlipped(FilterPOIs(poiList), constraints));
+    }
+
+    return commandUsed;
+  }
+
+  /**
+   * executes the pathfinding command meaning that the robot should go to all chosen POIs
+   *
+   * @return the command to pathfind to a specified point
+   */
+  public static Command doPathfinding() {
+    if (poiList.isEmpty()) {
+      for (POI poiArrayElement : POI.values()) {
+        poiList.add(poiArrayElement);
+      }
+    }
+    Command commandUsed =
+        Commands.run(() -> AutoBuilder.pathfindToPose(FilterPOIs(poiList), constraints));
+    if (DriverStation.getAlliance().get() == Alliance.Red) {
+      commandUsed =
+          Commands.run(() -> AutoBuilder.pathfindToPoseFlipped(FilterPOIs(poiList), constraints));
+    }
+
+    return commandUsed;
+  }
+
+  public static Pose2d getPose2d() {
+    return FilterPOIs(poiList);
   }
 }
 
 // this class could be in constants
 final class ConditionBuilder {
   // example code to demonstrate how we could use functions to make our conditions
-  public static boolean intakeHasNote() {
+  public static boolean exampleCondition() {
     boolean conditionFullfilled = false;
     boolean somecondition = true;
     if (somecondition == true) {

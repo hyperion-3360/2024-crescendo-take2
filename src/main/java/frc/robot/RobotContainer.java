@@ -54,6 +54,7 @@ public class RobotContainer {
   private void configureBindings() {}
 
   public Command getAutonomousCommand() {
-    return Pathfinding.doPathfinding(Pathfinding.POI.values());
+    m_swerveDrive.setPose(Pathfinding.getPose2d());
+    return Pathfinding.doPathfinding();
   }
 }
