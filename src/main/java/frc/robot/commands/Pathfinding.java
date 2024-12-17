@@ -138,11 +138,13 @@ public class Pathfinding {
       }
     }
     Command commandUsed =
-        Commands.run(() -> AutoBuilder.pathfindToPose(FilterPOIs(poiList), constraints));
+        Commands.run(() -> AutoBuilder.pathfindToPose(FilterPOIs(poiList), constraints))
+            .until(() -> DriverStation.isTeleop());
 
     if (DriverStation.getAlliance().get() == Alliance.Blue) {
       commandUsed =
-          Commands.run(() -> AutoBuilder.pathfindToPoseFlipped(FilterPOIs(poiList), constraints));
+          Commands.run(() -> AutoBuilder.pathfindToPoseFlipped(FilterPOIs(poiList), constraints))
+              .until(() -> DriverStation.isTeleop());
     }
 
     return commandUsed;
@@ -160,10 +162,12 @@ public class Pathfinding {
       }
     }
     Command commandUsed =
-        Commands.run(() -> AutoBuilder.pathfindToPose(FilterPOIs(poiList), constraints));
+        Commands.run(() -> AutoBuilder.pathfindToPose(FilterPOIs(poiList), constraints))
+            .until(() -> DriverStation.isTeleop());
     if (DriverStation.getAlliance().get() == Alliance.Blue) {
       commandUsed =
-          Commands.run(() -> AutoBuilder.pathfindToPoseFlipped(FilterPOIs(poiList), constraints));
+          Commands.run(() -> AutoBuilder.pathfindToPoseFlipped(FilterPOIs(poiList), constraints))
+              .until(() -> DriverStation.isTeleop());
     }
 
     return commandUsed;
