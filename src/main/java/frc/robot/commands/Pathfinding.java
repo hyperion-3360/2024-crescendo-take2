@@ -18,8 +18,8 @@ import java.util.stream.Collectors;
 /** Pathfinding */
 public class Pathfinding {
   public enum POI {
-    Note1(0.0, 0.0, 0.0, () -> ConditionBuilder.exampleCondition()),
-    Note2(0.0, 0.0, 0.0, () -> false);
+    Note1(30.0, 80.0, 0.0, () -> ConditionBuilder.exampleCondition()),
+    Note2(60.0, 50.0, 0.0, () -> false);
 
     private double x_coordinates;
     private double y_coordinates;
@@ -140,7 +140,7 @@ public class Pathfinding {
     Command commandUsed =
         Commands.run(() -> AutoBuilder.pathfindToPose(FilterPOIs(poiList), constraints));
 
-    if (DriverStation.getAlliance().get() == Alliance.Red) {
+    if (DriverStation.getAlliance().get() == Alliance.Blue) {
       commandUsed =
           Commands.run(() -> AutoBuilder.pathfindToPoseFlipped(FilterPOIs(poiList), constraints));
     }
@@ -161,7 +161,7 @@ public class Pathfinding {
     }
     Command commandUsed =
         Commands.run(() -> AutoBuilder.pathfindToPose(FilterPOIs(poiList), constraints));
-    if (DriverStation.getAlliance().get() == Alliance.Red) {
+    if (DriverStation.getAlliance().get() == Alliance.Blue) {
       commandUsed =
           Commands.run(() -> AutoBuilder.pathfindToPoseFlipped(FilterPOIs(poiList), constraints));
     }
@@ -170,6 +170,11 @@ public class Pathfinding {
   }
 
   public static Pose2d getPose2d() {
+    if (poiList.isEmpty()) {
+      for (POI poiArrayElement : POI.values()) {
+        poiList.add(poiArrayElement);
+      }
+    }
     return FilterPOIs(poiList);
   }
 }
