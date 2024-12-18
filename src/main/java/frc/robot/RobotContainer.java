@@ -4,11 +4,16 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.path.PathConstraints;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.commands.Pathfinding;
 import frc.robot.subsystems.LEDs;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.Climb;
@@ -62,6 +67,13 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    return m_LEDs.rainbow();
+    PathConstraints constraints =
+        new PathConstraints(3.0, 4.0, Units.degreesToRadians(540), Units.degreesToRadians(720));
+
+    m_swerveDrive.resetOdometryBlueSide();
+    m_swerveDrive.setPose(new Pose2d(0, 0, new Rotation2d(-180)));
+    // return AutoBuilder.followPath(PathPlannerPath.fromPathFile("0b"));
+    //m_LEDs.rainbow();
+    return Pathfinding.doPathfinding();
   }
 }
