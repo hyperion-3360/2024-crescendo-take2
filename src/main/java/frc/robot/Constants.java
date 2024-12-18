@@ -110,9 +110,9 @@ public final class Constants {
     /* Front Left Module - Module 0 */
     // good
     public static final class Mod0 {
-      public static final int driveMotorID = 5;
-      public static final int angleMotorID = 6;
-      public static final int magEncoderID = 3; // 2
+      public static final int driveMotorID = 1; // 5
+      public static final int angleMotorID = 2; // 6
+      public static final int magEncoderID = 0; // 3
       public static final Rotation2d angleOffset = Rotation2d.fromDegrees(104.94); // -75.06
       public static final SwerveModuleConstants constants =
           new SwerveModuleConstants(driveMotorID, angleMotorID, magEncoderID, angleOffset);
@@ -120,9 +120,9 @@ public final class Constants {
 
     /* Front Right Module - Module 1 */
     public static final class Mod1 {
-      public static final int driveMotorID = 1;
-      public static final int angleMotorID = 2;
-      public static final int magEncoderID = 0; // 1
+      public static final int driveMotorID = 5; // 1
+      public static final int angleMotorID = 6; // 2
+      public static final int magEncoderID = 3; // 0
       public static final Rotation2d angleOffset = Rotation2d.fromDegrees(105.94); // -74.06
       public static final SwerveModuleConstants constants =
           new SwerveModuleConstants(driveMotorID, angleMotorID, magEncoderID, angleOffset);
@@ -131,19 +131,19 @@ public final class Constants {
     /* Back Left Module - Module 2 */
     // good
     public static final class Mod2 {
-      public static final int driveMotorID = 3;
-      public static final int angleMotorID = 4;
-      public static final int magEncoderID = 2; // 3
-      public static final Rotation2d angleOffset = Rotation2d.fromDegrees(-93.51);
+      public static final int driveMotorID = 7; // 3
+      public static final int angleMotorID = 8; // 4
+      public static final int magEncoderID = 1; // 2
+      public static final Rotation2d angleOffset = Rotation2d.fromDegrees(-84.51);
       public static final SwerveModuleConstants constants =
           new SwerveModuleConstants(driveMotorID, angleMotorID, magEncoderID, angleOffset);
     }
 
     /* Back Right Module - Module 3 */
     public static final class Mod3 {
-      public static final int driveMotorID = 7;
-      public static final int angleMotorID = 8;
-      public static final int magEncoderID = 1; // 0
+      public static final int driveMotorID = 3; // 7
+      public static final int angleMotorID = 4; // 8
+      public static final int magEncoderID = 2; // 1
       public static final Rotation2d angleOffset = Rotation2d.fromDegrees(-86.31);
       public static final SwerveModuleConstants constants =
           new SwerveModuleConstants(driveMotorID, angleMotorID, magEncoderID, angleOffset);
@@ -160,5 +160,40 @@ public final class Constants {
                 (Swerve.trackWidth / 2.0 * Swerve.trackWidth / 2.0)
                     + (Swerve.wheelBase / 2.0 * Swerve.wheelBase / 2.0)),
             new ReplanningConfig());
+  }
+
+  public final class ClimberConstants {
+    /** Device Id for left climber */
+    public static int kLeftClimberId = 12;
+
+    /** Device Id for left climber */
+    public static int kRightClimberId = 11;
+  }
+
+  public final class OperatorConstants {
+
+    public static int kDriverControllerPort = 0;
+
+    public static int kCoDriverControllerPort = 1;
+  }
+
+  public static final double kDeadband = 0.1;
+
+  public static class VisionConstants {
+    public static long kPositionCoalescingTime = 100 * 1000; // 100 ms in microseconds
+    public static int kRedSpeakerTag = 4;
+    public static int kBlueSpeakerTag = 7;
+    public static Integer kSpeakerIndex[] = {kRedSpeakerTag, kBlueSpeakerTag};
+    public static int kRedAmpTag = 5;
+    public static int kBlueAmpTag = 6;
+    public static Integer kAmpIndex[] = {kRedAmpTag, kBlueAmpTag};
+    public static double kAmpRiseElevatorDistance = 0.5;
+    public static double kAmpShootingDistance = 0.1;
+    public static double kShooterCameraPitch = 0.1309; // 7.5deg;
+    public static double kCameraHeight = 0.432; // 43.2 cm
+    public static double kAprilTagCameraHeight = 0.6; // TODO change for real measure! 60 cm
+    // Angle between horizontal and the camera.
+    public static double kAprilTagCameraPitch = 0; // TODO change for real measure! 0 deg
+    public static double kSpeakerShootingDistance = 2.0; // 2 meters
   }
 }
