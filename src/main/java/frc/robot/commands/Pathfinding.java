@@ -9,7 +9,6 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
@@ -18,8 +17,8 @@ import java.util.stream.Collectors;
 /** Pathfinding */
 public class Pathfinding {
   public enum POI {
-    Note1(30.0, 80.0, 0.0, () -> ConditionBuilder.exampleCondition()),
-    Note2(60.0, 50.0, 0.0, () -> false);
+    Note1(10.0, 3.0, 0.0, () -> ConditionBuilder.exampleCondition()),
+    Note2(3.0, 3.0, 0.0, () -> false);
 
     private double x_coordinates;
     private double y_coordinates;
@@ -138,12 +137,12 @@ public class Pathfinding {
       }
     }
     Command commandUsed =
-        Commands.run(() -> AutoBuilder.pathfindToPose(FilterPOIs(poiList), constraints))
+        AutoBuilder.pathfindToPose(FilterPOIs(poiList), constraints)
             .until(() -> DriverStation.isTeleop());
 
     if (DriverStation.getAlliance().get() == Alliance.Blue) {
       commandUsed =
-          Commands.run(() -> AutoBuilder.pathfindToPoseFlipped(FilterPOIs(poiList), constraints))
+          AutoBuilder.pathfindToPoseFlipped(FilterPOIs(poiList), constraints)
               .until(() -> DriverStation.isTeleop());
     }
 
@@ -162,11 +161,12 @@ public class Pathfinding {
       }
     }
     Command commandUsed =
-        Commands.run(() -> AutoBuilder.pathfindToPose(FilterPOIs(poiList), constraints))
+        AutoBuilder.pathfindToPose(FilterPOIs(poiList), constraints)
             .until(() -> DriverStation.isTeleop());
+
     if (DriverStation.getAlliance().get() == Alliance.Blue) {
       commandUsed =
-          Commands.run(() -> AutoBuilder.pathfindToPoseFlipped(FilterPOIs(poiList), constraints))
+          AutoBuilder.pathfindToPoseFlipped(FilterPOIs(poiList), constraints)
               .until(() -> DriverStation.isTeleop());
     }
 
@@ -179,6 +179,7 @@ public class Pathfinding {
         poiList.add(poiArrayElement);
       }
     }
+
     return FilterPOIs(poiList);
   }
 }
