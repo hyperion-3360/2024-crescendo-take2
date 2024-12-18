@@ -13,8 +13,11 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.Constants;
+
+// TODO: un-comment the led code when this is merged with the rest
 
 public class Shooter extends SubsystemBase {
   private CANSparkMax m_ShInMasterL =
@@ -28,6 +31,9 @@ public class Shooter extends SubsystemBase {
 
   // Servo (finger)
   private Servo m_noteBlocker = new Servo(Constants.ShInConstants.kServoPort);
+
+  // // Leds
+  // private final LEDs m_led = new LEDs();
 
   /** Detects notes getting "intaked" */
   private DigitalInput m_IntakeIR = new DigitalInput(Constants.ShInConstants.kIntakeIRsensor);
@@ -49,9 +55,9 @@ public class Shooter extends SubsystemBase {
     INTAKE,
     VOMIT,
     STOP,
-    SPEAKER_CLOSE,
-    SPEAKER_FAR,
-    AMP,
+    HIGH,
+    FAR_HIGH,
+    LOW,
     EJECT,
     MAX;
   }
@@ -61,9 +67,9 @@ public class Shooter extends SubsystemBase {
   // Motor speeds + ramp rate (constants) (adjust if needed)
   private static double kIntake = 0.3;
   private static double kVomit = -0.8;
-  private static double kAmp = 0.5;
-  private static double kSpeakerClose = 0.8;
-  private static double kSpeakerFar = 0.95;
+  private static double kLow = 0.5;
+  private static double kHigh = 0.8;
+  private static double kFarHigh = 0.95;
   private static double kMax = 1;
   private static double rampRate = 1;
 
@@ -114,11 +120,9 @@ public class Shooter extends SubsystemBase {
     m_ShInMasterR.burnFlash();
     // Close note blocker hook
     closeNoteBlocker();
-    // Amp limit
-    m_ShInMasterL.setSmartCurrentLimit(20);
-    m_ShInFollowL.setSmartCurrentLimit(20);
-    m_ShInMasterR.setSmartCurrentLimit(20);
-    m_ShInFollowR.setSmartCurrentLimit(20);
+    // reset enums
+    m_target = speedStates.STOP;
+    m_noteStatus = noteStates.IDLE;
   }
 
   @Override
@@ -175,28 +179,28 @@ public class Shooter extends SubsystemBase {
   }
 
   public Command Vomit() {
-    return Commands.sequence(
-        runOnce(() -> setShInSpeed(speedStates.VOMIT)),
-        // time to be adjusted
-        new WaitUntilCommand(3),
-        stop());
+    setShInSpeed(speedStates.VOMIT);
+    return run(
+        () -> {
+          setShInSpeed(speedStates.VOMIT);
+        });
   }
 
   public Command Eject() {
-    return Commands.sequence(
-        runOnce(() -> setShInSpeed(speedStates.EJECT)),
-        // time to be adjusted
-        new WaitUntilCommand(2),
-        stop());
+    setShInSpeed(speedStates.EJECT);
+    return run(
+        () -> {
+          setShInSpeed(speedStates.EJECT);
+        });
   }
 
-  public Command Shoot() {
+  public Command Shoot(speedStates ShootSpd) {
     return Commands.sequence(
         closeNoteBlocker(),
-        setSpeedFromTarget(),
-        new WaitUntilCommand(1),
+        runOnce(() -> setShInSpeed(ShootSpd)),
+        new WaitCommand(1),
         openNoteBlocker(),
-        new WaitUntilCommand(0.7),
+        new WaitCommand(0.7),
         stop());
   }
 
@@ -205,11 +209,9 @@ public class Shooter extends SubsystemBase {
     // time to be adjusted
     if (!timerStarted) {
       timerStarted = true;
-      new WaitUntilCommand(1.5);
+      new WaitCommand(1.5);
       if (m_noteStatus == noteStates.FIRST_SIDE || m_noteStatus == noteStates.CENTER_HOLE) {
-        System.out.println("Max delay reached");
         m_noteStatus = noteStates.NOTE_SHOT;
-        stop();
       }
       timerStarted = false;
     }
@@ -235,9 +237,9 @@ public class Shooter extends SubsystemBase {
     return runOnce(() -> m_target = target);
   }
 
-  public Command setSpeedFromTarget() {
-    return runOnce(() -> setShInSpeed(m_target));
-  }
+  // public Command setSpeedFromTarget() {
+  //   return runOnce(() -> setShInSpeed(m_target));
+  // }
 
   public void setShInSpeed(speedStates speed) {
     // Change value of currentSpeed with a switch case using the enum
@@ -254,14 +256,14 @@ public class Shooter extends SubsystemBase {
       case EJECT:
         currentSpeed = -kVomit;
         break;
-      case AMP:
-        currentSpeed = kAmp;
+      case LOW:
+        currentSpeed = kLow;
         break;
-      case SPEAKER_CLOSE:
-        currentSpeed = kSpeakerClose;
+      case HIGH:
+        currentSpeed = kHigh;
         break;
-      case SPEAKER_FAR:
-        currentSpeed = kSpeakerFar;
+      case FAR_HIGH:
+        currentSpeed = kFarHigh;
         break;
       case MAX:
         currentSpeed = kMax;

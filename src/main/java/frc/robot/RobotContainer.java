@@ -7,7 +7,6 @@ package frc.robot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.commands.DummyShootCommand;
 import frc.robot.subsystems.Shooter;
 
 public class RobotContainer {
@@ -17,13 +16,10 @@ public class RobotContainer {
 
   public RobotContainer() {
     configureBindings();
+    m_shooter.setDefaultCommand(m_shooter.stop());
   }
 
-  private void configureBindings() {
-    m_driverController.x().toggleOnTrue(m_shooter.Intake());
-    m_driverController.b().toggleOnTrue(m_shooter.Vomit());
-    m_driverController.a().onTrue(DummyShootCommand(m_shooter));
-  }
+  private void configureBindings() {}
 
   public Command getAutonomousCommand() {
     return Commands.print("No autonomous command configured");
