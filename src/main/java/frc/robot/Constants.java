@@ -6,16 +6,12 @@ package frc.robot;
 
 /** Add your docs here. */
 public final class Constants {
-  public final class ClimberConstants {
-    /** Device Id for left climber motor */
-    public static int kLeftClimberId = 11;
-
-    /** Device Id for right climber */
-    public static int kRightClimberId = 12;
-  }
 
   public final class OperatorConstants {
+
     public static int kDriverControllerPort = 0;
+
+    public static int kCodriverControllerPort = 1;
   }
 
   public final class ShInConstants {
